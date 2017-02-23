@@ -1,0 +1,28 @@
+Dominic Pitts
+2634512
+EECS 662
+Homework 1
+
+Instructions:
+Navigate to folder destination. Run GHCi and load (:l) the file
+ParserExercise2.hs. An interpreter was created and the code can be
+tested by running similar examples as seen below.
+
+A couple additional features were added such as OR, Geq, etc...
+
+interp "2+2"
+interp "4-3"
+interp "4*2"
+interp "6/2"
+interp "if 2 <= 3 then 5 else 6"
+interp "if true then 1 else 2"
+
+
+For some reason
+
+interp "+2" returns 2. I believe this is because it's being
+recognized as a Num instead of Plus, thus the eval is just
+calling the (Num x) = (Num x)
+
+But that being said. interp "*2" performs as expected and throws an
+error. Not sure what the difference between the two is.

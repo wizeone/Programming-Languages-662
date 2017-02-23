@@ -1,0 +1,20 @@
+Dominic Pitts
+EECS 662 Programming Languages
+Project 2
+
+Exercise 1.
+
+Created two functions eval and typeOf. Both take in ABE and return an (Either String ABE)
+these are used together within our "interp" function. typeOf checks the parsed
+input and determines if the types being called on certain functions are correct.
+If not it returns a Left with an error message. Else it returns a Right that is
+then allows the parsed input to be passed into eval.
+
+
+Exercise 2.
+
+An "optimize" function was written to optimize all functions being covered within
+"eval". For this I took what was completed in Exercise1 and just simply
+applied optimize to the parsed input before passing the input into eval. This
+can be seen by taking a look at the "interp" function. So this is both type
+checking and then optimizing the code before evaluating it. 
