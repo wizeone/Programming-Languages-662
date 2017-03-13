@@ -1,28 +1,20 @@
 Dominic Pitts
-2634512
-EECS 662
-Homework 1
+EECS 662 Programming Languages
+Project 2
 
-Instructions:
-Navigate to folder destination. Run GHCi and load (:l) the file
-ParserExercise2.hs. An interpreter was created and the code can be
-tested by running similar examples as seen below.
+Exercise 1.
 
-A couple additional features were added such as OR, Geq, etc...
-
-interp "2+2"
-interp "4-3"
-interp "4*2"
-interp "6/2"
-interp "if 2 <= 3 then 5 else 6"
-interp "if true then 1 else 2"
+Created two functions eval and typeOf. Both take in ABE and return an (Either String ABE)
+these are used together within our "interp" function. typeOf checks the parsed
+input and determines if the types being called on certain functions are correct.
+If not it returns a Left with an error message. Else it returns a Right that is
+then allows the parsed input to be passed into eval.
 
 
-For some reason
+Exercise 2.
 
-interp "+2" returns 2. I believe this is because it's being
-recognized as a Num instead of Plus, thus the eval is just
-calling the (Num x) = (Num x)
-
-But that being said. interp "*2" performs as expected and throws an
-error. Not sure what the difference between the two is.
+An "optimize" function was written to optimize all functions being covered within
+"eval". For this I took what was completed in Exercise1 and just simply
+applied optimize to the parsed input before passing the input into eval. This
+can be seen by taking a look at the "interp" function. So this is both type
+checking and then optimizing the code before evaluating it. 
