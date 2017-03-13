@@ -1,5 +1,5 @@
 -- Dominic Pitts
--- Project 1
+-- Project 2
 -- EECS 662 Programming Languages
 {-# LANGUAGE GADTs #-}
 
@@ -8,30 +8,32 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Token
-import ParserUtils
+import Proj2Utils
 
-data ABE where
-  Num      :: Int -> ABE
-  Plus     :: ABE -> ABE -> ABE
-  Minus    :: ABE -> ABE -> ABE
-  Divide   :: ABE -> ABE -> ABE
-  Multiply :: ABE -> ABE -> ABE
-  Boolean  :: Bool -> ABE
-  And      :: ABE -> ABE -> ABE
-  Or       :: ABE -> ABE -> ABE
-  Leq      :: ABE -> ABE -> ABE
-  Geq      :: ABE -> ABE -> ABE
-  IsZero   :: ABE -> ABE
-  If       :: ABE -> ABE -> ABE -> ABE
+data BBAE where
+  Num      :: Int -> BBAE
+  Plus     :: BBAE -> BBAE -> BBAE
+  Minus    :: BBAE -> BBAE -> BBAE
+  Divide   :: BBAE -> BBAE -> BBAE
+  Multiply :: BBAE -> BBAE -> BBAE
+  Boolean  :: Bool -> BBAE
+  And      :: BBAE -> BBAE -> BBAE
+  Or       :: BBAE -> BBAE -> BBAE
+  Leq      :: BBAE -> BBAE -> BBAE
+  Geq      :: BBAE -> BBAE -> BBAE
+  IsZero   :: BBAE -> BBAE
+  If       :: BBAE -> BBAE -> BBAE -> BBAE
+  Seq      :: BBAE -> BBAE -> BBAE
+  Print    :: BBAE -> BBAE
   deriving (Show,Eq)
 
-data TABE where
-  Tnum   :: TABE
-  Tbool  :: TABE
+data TBBAE where
+  Tnum   :: TBBAE
+  Tbool  :: TBBAE
   deriving (Show,Eq)
 
-parseABE :: String -> ABE
-parseABE = parseString expr
+parseBBAE :: String -> BBAE
+parseBBAE = parseString expr
 
 operators = [ [ inFix "*" Multiply AssocLeft
               , inFix "/" Divide AssocLeft
@@ -45,7 +47,7 @@ operators = [ [ inFix "*" Multiply AssocLeft
               [ inFix "&&" And AssocLeft
               , inFix "||" Or AssocLeft ] ]
 
-ifExpr :: Parser ABE
+ifExpr :: Parser BBAE
 ifExpr = do reserved lexer "if"
             c <- expr
             reserved lexer "then"
@@ -54,15 +56,15 @@ ifExpr = do reserved lexer "if"
             e <- expr
             return (If c t e)
 
-numExpr :: Parser ABE
+numExpr :: Parser BBAE
 numExpr = do i <- integer lexer
              return (Num (fromInteger i))
 
-tExpr :: Parser ABE
+tExpr :: Parser BBAE
 tExpr = do i <- reserved lexer "true"
            return (Boolean True)
 
-fExpr :: Parser ABE
+fExpr :: Parser BBAE
 fExpr = do i <- reserved lexer "false"
            return (Boolean False)
 
@@ -72,10 +74,88 @@ term = parens lexer expr
         <|> fExpr
         <|> ifExpr
 
-expr :: Parser ABE
+expr :: Parser BBAE
 expr = buildExpressionParser operators term
 
-eval :: ABE -> Either String ABE
+evals :: BBAE -> Either String BBAE
+evals (Num x) = (Right (Num x))
+evals (Multiply x y) = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Num (t1 * t2)))
+                                              (Right _) -> (Left "Type error in *")
+evals (Divide x y)   = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Num (t1 `div` t2)))
+                                              (Right _) -> (Left "Type error in Divide")
+evals (Plus x y)     = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Num (t1 + t2)))
+                                              (Right _) -> (Left "Type error in Plus")
+evals (Minus x y)    = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Num (t1 - t2)))
+                                              (Right _) -> (Left "Type error in Minus")
+evals (Boolean b)    = (Right (Boolean b))
+evals (And x y)      = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Boolean t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Boolean t2)) -> (Right (Boolean (t1 && t2)))
+                                              (Right _) -> (Left "Type error in &&")
+evals (Or x y)       = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Boolean t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Boolean t2)) -> (Right (Boolean (t1 || t2)))
+                                              (Right _) -> (Left "Type error in ||")
+evals (Leq x y)      = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Boolean (t1 <= t2)))
+                                              (Right _) -> (Left "Type error in <=")
+evals (Geq x y)      = let v1 = (evals x)
+                          v2 = (evals y)
+                      in case v1 of
+                        (Left m) -> v1
+                        (Right (Num t1)) -> case v2 of
+                                              (Left m) -> v2
+                                              (Right (Num t2)) -> (Right (Boolean (t1 >= t2)))
+                                              (Right _) -> (Left "Type error in >=")
+evals (IsZero x)     = let r = (evals x)
+                      in case r of
+                        (Left m) -> r
+                        (Right (Num v)) -> (Right (Boolean (v == 0)))
+                        (Right _) -> (Left "Type error for isZero")
+evals (If x y z)     = let r = (evals x)
+                      in case r of
+                        (Left _) -> r
+                        (Right (Boolean s)) -> if s then (evals y) else (evals z)
+                        (Right _) -> (Left "Type error in if")
+
+eval :: BBAE -> Either String BBAE
 eval (Num x) = (Right (Num x))
 eval (Multiply x y) = let v1 = (eval x)
                           v2 = (eval y)
@@ -153,7 +233,7 @@ eval (If x y z)     = let r = (eval x)
                         (Right (Boolean s)) -> if s then (eval y) else (eval z)
                         (Right _) -> (Left "Type error in if")
 
-typeOf :: ABE -> Either String TABE
+typeOf :: BBAE -> Either String TBBAE
 typeOf (Num _)        = (Right Tnum)
 typeOf (Plus t1 t2)   = let t1' = (typeOf t1)
                             t2' = (typeOf t2)
@@ -198,9 +278,21 @@ typeOf (Divide t1 t2) = let t1' = (typeOf t1)
                           then (Right Tnum)
                           else (Left "Type error in /")
 
+-- Pulled from text book
+subst :: String -> BBAE -> BBAE -> BBAE
+subst _ _ (Num x) = (Num x)
+subst i v (Plus l r) = (Plus (subst i v l) (subst i v r))
+subst i v (Minus l r) = (Minus (subst i v l) (subst i v r))
+subst i v (Bind i' v' b') = if i==i'
+	                          then (Bind i' (subst i v v') b')
+	                          else (Bind i' (subst i v v') (subst i v b'))
+subst i v (Id i') = if i==i'
+  	                then v
+  	                else (Id i')
 
-interp :: String -> Either String ABE
-interp e = let p = (parseABE e)
+
+interp :: String -> Either String BBAE
+interp e = let p = (parseBBAE e)
            in case (typeOf p) of
-             (Right _) -> (eval p)
+             (Right _) -> (evals p)
              (Left m)  -> (Left m)
