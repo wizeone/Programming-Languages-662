@@ -113,5 +113,6 @@ evalCFBAE env x = (evalStatCFAE env (elabCFBAE x))
 --                            (elabCFBAE x))
 
 interpCFBAE :: String -> CFAEValue
-interpCFBAE x = (evalCFBAE []
+interpCFBAE x = (evalCFBAE [("inc",(ClosureV (Id n) (Plus (Id n) (Num 1)) [])),
+                            ("dec",(ClosureV (Id n) (Plus (Id n) (Num 1)) []))]
                            (parseCFBAE x))
