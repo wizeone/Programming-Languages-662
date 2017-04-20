@@ -107,12 +107,7 @@ elabCFBAE (IfX x y z) = let x' = (elabCFBAE x)
 evalCFBAE :: EnvS -> CFBAE -> CFAEValue
 evalCFBAE env x = (evalStatCFAE env (elabCFBAE x))
 
--- interpCFBAE :: String -> CFAEValue
--- interpCFBAE x = (evalCFBAE [("inc",(App (ClosureV (Id n) (Plus (Id n) (Num 1))))),
---                             ("dec",(App (ClosureV (Id n) (Plus (Id n) (Num 1)))))]
---                            (elabCFBAE x))
-
 interpCFBAE :: String -> CFAEValue
-interpCFBAE x = (evalCFBAE [("inc",(ClosureV (Id n) (Plus (Id n) (Num 1)) [])),
-                            ("dec",(ClosureV (Id n) (Plus (Id n) (Num 1)) []))]
+interpCFBAE x = (evalCFBAE [("inc",(ClosureV "n" (Plus (Id "n") (Num 1)) [])),
+                            ("dec",(ClosureV "n" (Minus (Id "n") (Num 1)) []))]
                            (parseCFBAE x))
