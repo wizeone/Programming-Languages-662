@@ -68,8 +68,8 @@ eval env (And l r) = let (BooleanV l') = eval env l
 eval env (Or l r) = let (BooleanV l') = eval env l
                         (BooleanV r') = eval env r
                     in (BooleanV (l' || r'))
-eval env (Leq l r) = let (BooleanV l') = eval env l
-                         (BooleanV r') = eval env r
+eval env (Leq l r) = let (NumV l') = eval env l
+                         (NumV r') = eval env r
                      in (BooleanV (l' <= r'))
 eval env (IsZero x) = let (NumV x') = eval env x
                       in (BooleanV (x' == 0))
